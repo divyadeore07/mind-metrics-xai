@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Research Command Center - Mind & Metrics</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Chart.js for Admin Aggregation Charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        .admin-container {
+            max-width: 1550px;
+            margin: 30px auto 60px auto;
+            padding: 0 25px;
+        }
+
+        /* Modernized Inputs */
+        .modern-admin-input {
+            width: 100%;
+            padding: 12px 18px;
+            border: 2px solid var(--border-color);
+            border-radius: 14px;
+            background: var(--bg-body);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.95em;
+            color: var(--text-main);
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+        .modern-admin-input:focus {
+            outline: none;
+            border-color: var(--color-blue);
+            background: var(--bg-card);
+            box-shadow: 0 0 0 4px rgba(115, 130, 144, 0.15);
+        }
+
+        /* Master Two-Column Split Layout */
+        .admin-master-grid {
+            display: grid;
+            grid-template-columns: 1.3fr 0.9fr;
+            gap: 25px;
+        }
+
+        @media (max-width: 1200px) {
+            .admin-master-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Analytics Sub-Grid */
+        .analytics-subgrid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 20px;
+        }
+
+        .chart-box-admin {
+            background: var(--bg-body);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 15px;
+            height: 240px;
+            position: relative;
+            margin-top: 12px;
+        }
+
+        /* Modern Scrollable Table Container for Right Panel */
+        .modern-table-wrapper {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            overflow-y: auto;
+            max-height: 750px;
+            box-shadow: var(--shadow-sm);
+        }
+        .modern-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+        .modern-table th, .modern-table td {
+            padding: 14px 16px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9em;
+        }
+        .modern-table th {
+            background: var(--bg-body);
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .modern-table td {
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-main);
+            font-weight: 500;
+        }
+        .modern-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Round Pill Buttons (Fully Circular Ends) */
+        .btn-round {
+            border-radius: 50px !important;
+            padding: 12px 24px !important;
+            font-weight: 700 !important;
+            font-size: 0.9em !important;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: var(--shadow-sm);
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .btn-round:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body class="landing-page">
+
+    <!-- Glassmorphism Navbar -->
+    <nav class="navbar glass-nav">
+        <div class="nav-brand"><i class="fa-solid fa-bolt"></i> MIND & METRICS</div>
+        <div class="nav-links">
+            <a href="/" class="nav-link"><i class="fa-solid fa-arrow-left"></i> PUBLIC SITE</a>
+            <button id="darkModeToggle" class="dark-mode-toggle" aria-label="Toggle Dark Mode"><i class="fa-solid fa-moon"></i></button>
+        </div>
+    </nav>
+
+    <div class="admin-container">
+        
+        <!-- LOGIN SCREEN -->
+        <div id="loginScreen" class="brutal-card" style="max-width: 450px; margin: 80px auto; text-align: center; border-radius: 24px; padding: 45px;">
+            <div style="background: rgba(217, 125, 108, 0.15); color: var(--color-terracotta); border-radius: 16px; padding: 15px; margin-bottom: 30px;">
+                <h2 style="margin: 0; font-size: 1.5em; font-weight: 800;"><i class="fa-solid fa-lock"></i> RESTRICTED AREA</h2>
+            </div>
+            <p style="font-weight: 600; color: var(--text-muted); margin-bottom: 25px; font-size: 0.95em;">AUTHORIZED PERSONNEL ONLY</p>
+            <form id="adminAuthForm">
+                <input type="text" id="adminUser" class="modern-admin-input" placeholder="Username" required style="margin-bottom: 20px;">
+                <input type="password" id="adminPass" class="modern-admin-input" placeholder="Password" required style="margin-bottom: 20px;">
+                <p id="errorMsg" class="hidden" style="color: var(--color-terracotta); font-weight: 600; margin-bottom: 20px; font-size: 0.9em;"><i class="fa-solid fa-triangle-exclamation"></i> ACCESS DENIED.</p>
+                <button type="submit" class="btn" style="width: 100%; border-radius: 16px; padding: 14px; font-size: 1.05em; font-weight: 700;">VERIFY IDENTITY <i class="fa-solid fa-fingerprint"></i></button>
+            </form>
+        </div>
+
+        <!-- SECURE SPLIT-SCREEN DASHBOARD -->
+        <div id="dashboardScreen" class="hidden fade-in-up">
+            
+            <!-- Top Command Header Area (Separated Title & Buttons) -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 20px;">
+                
+                <!-- Square Curved Title Box -->
+                <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 20px; padding: 22px 30px; box-shadow: var(--shadow-sm); flex: 1; min-width: 280px;">
+                    <span style="font-size: 0.8em; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Research & Telemetry</span>
+                    <h1 style="margin: 2px 0 0 0; font-size: 1.6em; font-weight: 800;">Admin Research Command Center</h1>
+                </div>
+
+                <!-- Separate Round Pill Action Buttons -->
+                <div style="display: flex; gap: 12px; align-items: center;">
+                    <a href="/api/admin/export-csv" class="btn-round" style="background: var(--color-blue); color: white;"><i class="fa-solid fa-download"></i> EXPORT CSV</a>
+                    <button id="logoutBtn" class="btn-round" style="background: var(--color-terracotta); color: white;"><i class="fa-solid fa-right-from-bracket"></i> LOGOUT</button>
+                </div>
+
+            </div>
+
+            <!-- STATS NUMBERS ROW (Square Shaped Curved Boxes) -->
+            <div class="stats-grid" style="margin-bottom: 25px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));">
+                <div class="brutal-stat-card" style="border-radius: 18px; background: var(--bg-card); border: 1px solid var(--border-color); padding: 25px 30px; box-shadow: var(--shadow-sm);">
+                    <h3 style="font-size: 0.85em; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px; font-weight: 700;">Total Submissions</h3>
+                    <h2 id="totalCount" class="stat-number" style="color: var(--color-blue); font-size: 2.5em; margin: 0; font-weight: 800;">0</h2>
+                </div>
+                <div class="brutal-stat-card" style="border-radius: 18px; background: var(--bg-card); border: 1px solid var(--border-color); padding: 25px 30px; box-shadow: var(--shadow-sm);">
+                    <h3 style="font-size: 0.85em; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px; font-weight: 700;">High Risk Flag %</h3>
+                    <h2 id="highRiskPct" class="stat-number" style="color: var(--color-terracotta); font-size: 2.5em; margin: 0; font-weight: 800;">0%</h2>
+                </div>
+            </div>
+
+            <!-- MASTER TWO-COLUMN GRID: ANALYTICS (LEFT) vs USER LOGS (RIGHT) -->
+            <div class="admin-master-grid">
+                
+                <!-- LEFT COLUMN: AGGREGATION CHARTS -->
+                <div style="display: flex; flex-direction: column; gap: 20px;">
+                    <div class="analytics-subgrid">
+                        
+                        <!-- Chart 1: Cohort Distribution -->
+                        <div class="brutal-card" style="border-radius: 18px; padding: 20px;">
+                            <h3 style="font-size: 1.05em; margin-bottom: 3px;"><i class="fa-solid fa-chart-pie" style="color: var(--color-blue);"></i> Cohorts</h3>
+                            <p style="font-size: 0.8em; color: var(--text-muted); margin-bottom: 10px;">Occupation proportions.</p>
+                            <div class="chart-box-admin">
+                                <canvas id="demographicsChart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Chart 2: Risk Stratification -->
+                        <div class="brutal-card" style="border-radius: 18px; padding: 20px;">
+                            <h3 style="font-size: 1.05em; margin-bottom: 3px;"><i class="fa-solid fa-shield-halved" style="color: var(--color-terracotta);"></i> Risk Tiers</h3>
+                            <p style="font-size: 0.8em; color: var(--text-muted); margin-bottom: 10px;">Low/Moderate/High breakdown.</p>
+                            <div class="chart-box-admin">
+                                <canvas id="riskStratificationChart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Chart 3: Population Averages -->
+                        <div class="brutal-card" style="border-radius: 18px; padding: 20px;">
+                            <h3 style="font-size: 1.05em; margin-bottom: 3px;"><i class="fa-solid fa-chart-bar" style="color: var(--color-green);"></i> Averages</h3>
+                            <p style="font-size: 0.8em; color: var(--text-muted); margin-bottom: 10px;">Mean platform metrics.</p>
+                            <div class="chart-box-admin">
+                                <canvas id="averagesChart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Chart 4: Cohort Comparison -->
+                        <div class="brutal-card" style="border-radius: 18px; padding: 20px;">
+                            <h3 style="font-size: 1.05em; margin-bottom: 3px;"><i class="fa-solid fa-scale-balanced" style="color: var(--color-yellow);"></i> Comparison</h3>
+                            <p style="font-size: 0.8em; color: var(--text-muted); margin-bottom: 10px;">Students vs Professionals.</p>
+                            <div class="chart-box-admin">
+                                <canvas id="comparisonChart"></canvas>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- RIGHT COLUMN: SEARCHABLE USER LOGS TABLE -->
+                <div class="brutal-card" style="border-radius: 18px; padding: 25px; display: flex; flex-direction: column;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <h3 style="font-size: 1.2em; margin: 0;"><i class="fa-solid fa-table-list" style="color: var(--color-green);"></i> System Logs</h3>
+                        <span id="logCountBadge" style="font-size: 0.8em; font-weight: 700; background: rgba(115,130,144,0.1); padding: 4px 10px; border-radius: 10px;">0 Records</span>
+                    </div>
+
+                    <input type="text" id="tableSearch" class="modern-admin-input" placeholder="Search by verdict or ID..." style="margin-bottom: 15px;">
+
+                    <div class="modern-table-wrapper" style="flex: 1;">
+                        <table class="modern-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Time</th>
+                                    <th>SAS</th>
+                                    <th>PHQ</th>
+                                    <th>Verdict</th>
+                                    <th>Prob</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminTableRows">
+                                <!-- Rows injected via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <footer class="brutal-footer" style="margin-top: 50px;">
+        <p><strong>© 2026 DIGITAL WELLNESS & XAI PROJECT.</strong> BUILT FOR BETTER MENTAL HEALTH.</p>
+    </footer>
+
+    <!-- INTERACTIVE SCRIPTS -->
+    <script>
+        const darkModeBtn = document.getElementById('darkModeToggle');
+        const icon = darkModeBtn.querySelector('i');
+        
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark-mode');
+            icon.classList.replace('fa-moon', 'fa-sun');
+        }
+
+        darkModeBtn.addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            if (document.body.classList.contains('dark-mode')) {
+                icon.classList.replace('fa-moon', 'fa-sun');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                icon.classList.replace('fa-sun', 'fa-moon');
+                localStorage.setItem('theme', 'light');
+            }
+            window.location.reload();
+        });
+
+        const ADMIN_USERNAME = "admin";
+        const ADMIN_PASSWORD = "password123";
+
+        const loginScreen = document.getElementById('loginScreen');
+        const dashboardScreen = document.getElementById('dashboardScreen');
+        const errorMsg = document.getElementById('errorMsg');
+
+        document.getElementById('adminAuthForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const userVal = document.getElementById('adminUser').value;
+            const passVal = document.getElementById('adminPass').value;
+
+            if (userVal === ADMIN_USERNAME && passVal === ADMIN_PASSWORD) {
+                loginScreen.classList.add('hidden');
+                dashboardScreen.classList.remove('hidden');
+                fetchAdminData();
+            } else {
+                errorMsg.classList.remove('hidden');
+            }
+        });
+
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            dashboardScreen.classList.add('hidden');
+            loginScreen.classList.remove('hidden');
+        });
+
+        let demoChartInstance = null;
+        let riskStratChartInstance = null;
+        let avgChartInstance = null;
+        let compChartInstance = null;
+        let allAssessmentsData = [];
+
+        function fetchAdminData() {
+            fetch('/api/admin/reports')
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById('totalCount').innerText = data.total_assessments;
+                    document.getElementById('highRiskPct').innerText = data.high_risk_percentage + '%';
+                    allAssessmentsData = data.recent_assessments || [];
+                    document.getElementById('logCountBadge').innerText = allAssessmentsData.length + ' Records';
+
+                    const computedTextColor = getComputedStyle(document.body).getPropertyValue('--text-main').trim() || '#2D3748';
+
+                    // 1. Cohort Distribution
+                    const demoCtx = document.getElementById('demographicsChart').getContext('2d');
+                    if (demoChartInstance) demoChartInstance.destroy();
+                    demoChartInstance = new Chart(demoCtx, {
+                        type: 'doughnut',
+                        data: { labels: Object.keys(data.demographics || {}), datasets: [{ data: Object.values(data.demographics || {}), backgroundColor: ['#D97D6C', '#E2C792', '#738290'], borderWidth: 0 }] },
+                        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { size: 10, weight: '600' }, color: computedTextColor } } } }
+                    });
+
+                    // 2. Risk Stratification
+                    const riskCtx = document.getElementById('riskStratificationChart').getContext('2d');
+                    if (riskStratChartInstance) riskStratChartInstance.destroy();
+                    const riskCounts = data.risk_breakdown || { "Low Risk": 1, "Moderate Risk": 0, "High Risk": 0 };
+                    riskStratChartInstance = new Chart(riskCtx, {
+                        type: 'pie',
+                        data: { labels: Object.keys(riskCounts), datasets: [{ data: Object.values(riskCounts), backgroundColor: ['#8AA38C', '#E2C792', '#D97D6C'], borderWidth: 0 }] },
+                        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { size: 10, weight: '600' }, color: computedTextColor } } } }
+                    });
+
+                    // 3. Averages
+                    const avgCtx = document.getElementById('averagesChart').getContext('2d');
+                    if (avgChartInstance) avgChartInstance.destroy();
+                    avgChartInstance = new Chart(avgCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: ['Screen', 'Social', 'Sleep', 'SAS', 'PHQ-9'],
+                            datasets: [{ data: [data.averages.screen_time, data.averages.social_media, data.averages.sleep, data.averages.sas_score, data.averages.phq9_score], backgroundColor: '#8AA38C', borderRadius: 4, barThickness: 16 }]
+                        },
+                        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { grid: { color: 'rgba(150,150,150,0.1)' }, ticks: { color: computedTextColor } }, x: { grid: { display: false }, ticks: { color: computedTextColor } } } }
+                    });
+
+                    // 4. Comparison
+                    const compCtx = document.getElementById('comparisonChart').getContext('2d');
+                    if (compChartInstance) compChartInstance.destroy();
+                    const studentData = data.occupation_comparison?.Students || { screen_time: 4, sas: 20, phq: 8 };
+                    const profData = data.occupation_comparison?.Professionals || { screen_time: 5, sas: 25, phq: 10 };
+                    compChartInstance = new Chart(compCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: ['Screen', 'SAS-SV', 'PHQ-9'],
+                            datasets: [
+                                { label: 'Students', data: [studentData.screen_time, studentData.sas, studentData.phq], backgroundColor: '#738290', borderRadius: 4, barThickness: 14 },
+                                { label: 'Professionals', data: [profData.screen_time, profData.sas, profData.phq], backgroundColor: '#D97D6C', borderRadius: 4, barThickness: 14 }
+                            ]
+                        },
+                        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top', labels: { font: { size: 10 }, color: computedTextColor } } }, scales: { y: { grid: { color: 'rgba(150,150,150,0.1)' }, ticks: { color: computedTextColor } }, x: { grid: { display: false }, ticks: { color: computedTextColor } } } }
+                    });
+
+                    renderTable(allAssessmentsData);
+                })
+                .catch(err => console.error('Admin API Error:', err));
+        }
+
+        function renderTable(assessments) {
+            const tableBody = document.getElementById('adminTableRows');
+            tableBody.innerHTML = '';
+            if (assessments.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">No logs found.</td></tr>`;
+                return;
+            }
+            assessments.forEach(item => {
+                const verdictColor = item.risk_level.includes("High") ? "color: var(--color-terracotta); font-weight: 700;" : "font-weight: 600;";
+                tableBody.innerHTML += `<tr>
+                    <td>#${item.id}</td>
+                    <td>${item.created_at}</td>
+                    <td>${item.sas_sv_score}</td>
+                    <td>${item.phq9_score}</td>
+                    <td style="${verdictColor}">${item.risk_level.toUpperCase()}</td>
+                    <td>${item.risk_probability}%</td>
+                </tr>`;
+            });
+        }
+
+        document.getElementById('tableSearch')?.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            const filtered = allAssessmentsData.filter(item => 
+                item.risk_level.toLowerCase().includes(query) || item.id.toString().includes(query)
+            );
+            renderTable(filtered);
+        });
+    </script>
+</body>
+</html>

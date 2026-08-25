@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mind & Metrics - Digital Wellness</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="landing-page">
+
+    <!-- Glassmorphism Navbar -->
+    <nav class="navbar glass-nav">
+        <div class="nav-brand"><i class="fa-solid fa-bolt"></i> MIND & METRICS</div>
+        <div class="nav-links">
+            <a href="#" class="nav-link">HOME</a>
+            <a href="#about-psu" class="nav-link">ABOUT PSU</a>
+            <a href="#benefits" class="nav-link">BENEFITS</a>
+            <!-- Dark Mode Button -->
+            <button id="darkModeToggle" class="dark-mode-toggle" aria-label="Toggle Dark Mode"><i class="fa-solid fa-moon"></i></button>
+            <button id="navAnimateTestBtn" class="btn" style="background: white; color: var(--color-green) !important; border-radius: 20px;">Start Assessment <i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+    </nav>
+
+    <!-- Top News Ticker -->
+    <div class="ticker-wrap">
+        <div class="ticker-move">
+            <div class="ticker-item"><strong><i class="fa-solid fa-bell"></i> WELLNESS CHECK:</strong> Are your digital habits aligning with your mental health goals?</div>
+            <div class="ticker-item">TAKE THE CLINICAL ASSESSMENT TODAY.</div>
+            <div class="ticker-item"><strong><i class="fa-solid fa-bell"></i> WELLNESS CHECK:</strong> Are your digital habits aligning with your mental health goals?</div>
+            <div class="ticker-item">TAKE THE CLINICAL ASSESSMENT TODAY.</div>
+        </div>
+    </div>
+
+    <!-- Hero Section -->
+    <header class="hero-section left-align">
+        <div class="hero-content scroll-reveal">
+            <span class="badge" style="background: var(--color-blue);"><i class="fa-solid fa-leaf"></i> PROJECT DIGITAL DETOX</span>
+            <h1 class="hero-title">
+                <span class="flow-text">UNDERSTAND YOUR</span><br>
+                DIGITAL HABITS.
+            </h1>
+            <p class="hero-subtitle">
+                Leverage clinical screening tools and Explainable AI (XAI) to analyze how your smartphone screen time and unlock frequencies directly impact your mental health.
+            </p>
+            <div class="hero-actions" style="margin-top: 30px;">
+                <!-- Big Curved Button -->
+                <button id="animateTestBtn" class="btn-massive-curved">
+                    TAKE THE TEST <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- UNIQUE PSU Section: The Digital Distraction Layout -->
+    <section id="about-psu" class="scroll-reveal" style="padding: 100px 5%;">
+        <div class="psu-unique-container">
+            
+            <!-- Left Side: Text -->
+            <div class="psu-text-content">
+                <h2>WHAT IS PROBLEMATIC<br>SMARTPHONE USE?</h2>
+                <p>
+                    Problematic Smartphone Use (PSU) refers to an inability to regulate one's use of mobile devices, leading to negative psychological and behavioral consequences in daily life. 
+                    <br><br>
+                    In an era where our devices demand constant attention, understanding the boundary between healthy utility and clinical dependency is the first step toward regaining focus, improving sleep quality, and restoring your emotional baseline.
+                </p>
+            </div>
+
+            <!-- Right Side: The Abstract Phone Visual -->
+            <div class="psu-phone-visual">
+                <div class="abstract-phone">
+                    
+                    <!-- Notification 1 -->
+                    <div class="noti-card noti-left noti-yellow">
+                        <div class="noti-header"><i class="fa-solid fa-magnifying-glass"></i> THE SYMPTOMS</div>
+                        <div class="noti-body">Characterized by compulsive checking, losing track of time, and feeling anxious or fretful when separated from your device.</div>
+                    </div>
+
+                    <!-- Notification 2 -->
+                    <div class="noti-card noti-right noti-red">
+                        <div class="noti-header"><i class="fa-solid fa-heart-crack"></i> HOW IT AFFECTS YOU</div>
+                        <div class="noti-body">Excessive screen time is clinically linked to poor sleep quality, elevated social anxiety, and depressive symptoms.</div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Benefits Section -->
+    <section id="benefits" class="features-section scroll-reveal" style="padding: 80px 10%;">
+        <div style="text-align: center; margin-bottom: 50px;">
+            <h2 style="font-size: 3em;">WHY TAKE THIS ASSESSMENT?</h2>
+        </div>
+        
+        <div class="benefits-horizontal-container">
+            <div class="attractive-card text-center">
+                <div class="benefit-icon text-teal"><i class="fa-solid fa-user-check"></i></div>
+                <h3>PERSONAL INSIGHT</h3>
+                <p>Get a clear, objective, and clinically-backed view of your daily habits.</p>
+            </div>
+            
+            <div class="attractive-card text-center">
+                <div class="benefit-icon text-yellow"><i class="fa-solid fa-brain"></i></div>
+                <h3>TRANSPARENT AI</h3>
+                <p>See exactly how our ML model calculates your risk using SHAP analysis.</p>
+            </div>
+            
+            <div class="attractive-card text-center">
+                <div class="benefit-icon text-green"><i class="fa-solid fa-list-check"></i></div>
+                <h3>ACTIONABLE STEPS</h3>
+                <p>Receive tailored recommendations to improve your digital hygiene.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Reality Check Section (Neumorphic Orbs) -->
+    <section class="stats-section scroll-reveal" style="background: rgba(138, 163, 140, 0.05); padding: 80px 10%;">
+        <div style="text-align: center; margin-bottom: 50px;">
+            <h2 style="font-size: 3em;">THE REALITY CHECK</h2>
+            <p style="color: var(--text-muted); font-size: 1.1em;">Data-driven insights into modern digital behavior.</p>
+        </div>
+        <div class="stats-grid">
+            <div class="stat-orb">
+                <h2 class="stat-number text-red" style="font-size: 4em; margin-bottom: 5px;">60%</h2>
+                <p>Of young adults report severe sleep disturbances due to late-night screen time.</p>
+            </div>
+            <div class="stat-orb">
+                <h2 class="stat-number text-teal" style="font-size: 4em; margin-bottom: 5px;">70+</h2>
+                <p>The average number of times a user unlocks their smartphone in a single day.</p>
+            </div>
+            <div class="stat-orb">
+                <h2 class="stat-number text-green" style="font-size: 3.5em; margin-bottom: 5px;">HIGH</h2>
+                <p>Correlation between elevated SAS-SV addiction scores and depressive (PHQ-9) symptoms.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Massive Bottom CTA -->
+    <section class="brutal-cta-section scroll-reveal">
+        <h2 class="massive-text">YOUR BRAIN NEEDS A BREAK.</h2>
+        <button id="bottomAnimateTestBtn" class="btn btn-massive-curved" style="background: white; color: var(--color-green) !important; font-size: 1.5em; padding: 20px 50px;">
+            FIND OUT WHY <i class="fa-solid fa-arrow-right"></i>
+        </button>
+    </section>
+
+    <!-- Footer -->
+    <footer class="brutal-footer">
+        <p><strong>© 2026 DIGITAL WELLNESS & XAI PROJECT.</strong> BUILT FOR BETTER MENTAL HEALTH.</p>
+    </footer>
+
+    <!-- INTERACTIVE SCRIPTS -->
+    <script>
+        // --- DARK MODE TOGGLE LOGIC ---
+        const darkModeBtn = document.getElementById('darkModeToggle');
+        const icon = darkModeBtn.querySelector('i');
+        
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark-mode');
+            icon.classList.replace('fa-moon', 'fa-sun');
+        }
+
+        darkModeBtn.addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            if (document.body.classList.contains('dark-mode')) {
+                icon.classList.replace('fa-moon', 'fa-sun');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                icon.classList.replace('fa-sun', 'fa-moon');
+                localStorage.setItem('theme', 'light');
+            }
+        });
+
+        // --- BLOWUP BUTTON ANIMATION LOGIC ---
+        function applyBlowupAnimation(buttonId) {
+            const btn = document.getElementById(buttonId);
+            if (btn) {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    // Add expanding class
+                    btn.classList.add('expanding-transition');
+                    
+                    // Wait for animation to finish (600ms), then redirect
+                    setTimeout(() => {
+                        window.location.href = '/assessment';
+                    }, 600);
+                });
+            }
+        }
+
+        // Apply to all 3 CTAs
+        applyBlowupAnimation('animateTestBtn');
+        applyBlowupAnimation('navAnimateTestBtn');
+        applyBlowupAnimation('bottomAnimateTestBtn');
+
+        // --- FIX FOR BROWSERS "BACK" BUTTON BEHAVIOR ---
+        // If the user clicks back, this resets the blown-up buttons instantly
+        window.addEventListener('pageshow', (event) => {
+            if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
+                document.querySelectorAll('.expanding-transition').forEach(btn => {
+                    btn.classList.remove('expanding-transition');
+                });
+            }
+        });
+
+        // --- SCROLL ANIMATION OBSERVER ---
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: "0px 0px -50px 0px"
+        };
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.scroll-reveal').forEach((el) => {
+            observer.observe(el);
+        });
+    </script>
+</body>
+</html>

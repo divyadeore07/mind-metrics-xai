@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assessment - Mind & Metrics</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+
+    <!-- CUSTOM INLINE STYLES FOR SLEEK WIZARD UI -->
+    <style>
+        .wizard-container {
+            max-width: 1100px;
+            margin: 40px auto 80px auto;
+            padding: 0 20px;
+        }
+
+        .step-panel {
+            display: none; 
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        .step-panel.active {
+            display: block;
+            animation: sleekSlideUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+        @keyframes sleekSlideUp {
+            0% { opacity: 0; transform: translateY(20px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        .progress-tracker {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            margin-bottom: 40px;
+        }
+        .step-indicator {
+            flex: 1;
+            text-align: center;
+            padding: 12px 10px;
+            font-size: 0.85em;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            border-radius: 30px;
+            background: var(--bg-card);
+            color: var(--text-muted);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+            transition: all 0.4s ease;
+            border: 2px solid transparent;
+        }
+        .step-indicator.active {
+            background: var(--color-green);
+            color: white;
+            box-shadow: 0 8px 25px rgba(138, 163, 140, 0.4);
+            transform: translateY(-3px);
+        }
+        body.dark-mode .step-indicator:not(.active) {
+            background: var(--bg-card);
+            border-color: var(--border-color);
+        }
+
+        .assessment-card {
+            background: var(--bg-card);
+            border-radius: 30px;
+            padding: 50px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.05);
+            border: 1px solid var(--border-color);
+        }
+        
+        .step-title {
+            font-size: 2.5em;
+            color: var(--color-green);
+            margin-bottom: 10px;
+            line-height: 1.2;
+        }
+        .step-desc {
+            font-size: 1.1em;
+            color: var(--text-muted);
+            margin-bottom: 40px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 25px;
+        }
+
+        /* STEP 2 SPLIT LAYOUT */
+        .step2-split-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            align-items: start;
+        }
+
+        @media (max-width: 900px) {
+            .step2-split-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .form-group label {
+            font-size: 0.9em;
+            font-weight: 700;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .modern-input {
+            width: 100%;
+            padding: 16px 20px;
+            border: 2px solid var(--border-color);
+            border-radius: 16px;
+            background: var(--bg-body);
+            font-family: 'Inter', sans-serif;
+            font-size: 1.05em;
+            color: var(--text-main);
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+        .modern-input:focus {
+            outline: none;
+            border-color: var(--color-blue);
+            background: var(--bg-card);
+            box-shadow: 0 0 0 4px rgba(115, 130, 144, 0.15);
+        }
+
+        .consent-card {
+            background: rgba(226, 199, 146, 0.15);
+            border: 2px solid var(--color-yellow);
+            border-radius: 16px;
+            padding: 20px;
+            margin-top: 30px;
+            transition: all 0.3s ease;
+        }
+        .consent-card:hover {
+            background: rgba(226, 199, 146, 0.25);
+        }
+        .consent-label {
+            display: flex;
+            align-items: center;
+            font-size: 1.05em;
+            font-weight: 600;
+            color: var(--text-main);
+            cursor: pointer;
+            margin: 0;
+        }
+        .consent-label input[type="checkbox"] {
+            width: 24px;
+            height: 24px;
+            margin-right: 15px;
+            accent-color: var(--color-green);
+            cursor: pointer;
+        }
+
+        .btn-nav {
+            border-radius: 20px;
+            padding: 15px 35px;
+            font-size: 1.1em;
+            font-weight: 800;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+        
+        .survey-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px; 
+        }
+
+        .survey-question {
+            background: var(--bg-body);
+            border: 1px solid var(--border-color);
+            border-radius: 24px; 
+            padding: 35px; 
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            min-height: 220px; 
+        }
+        .survey-question:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.04);
+        }
+        .survey-question p {
+            font-size: 1.2em; 
+            font-weight: 600;
+            line-height: 1.5;
+            margin-bottom: 30px;
+            margin-top: 0;
+            color: var(--text-main);
+        }
+        
+        .survey-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .survey-options label {
+            flex: 1;
+            text-align: center;
+            padding: 12px 5px; 
+            border-radius: 40px; 
+            background: var(--bg-card);
+            border: 2px solid var(--border-color);
+            font-weight: 700;
+            font-size: 1.1em; 
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            min-width: 45px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .survey-options label:hover {
+            border-color: var(--color-blue);
+            color: var(--color-blue);
+            background: var(--bg-body);
+        }
+        
+        .survey-options input[type="radio"] {
+            display: none;
+        }
+        .survey-options label:has(input[type="radio"]:checked) {
+            background: var(--color-green);
+            border-color: var(--color-green);
+            color: white;
+            box-shadow: 0 6px 20px rgba(138, 163, 140, 0.4);
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 768px) {
+            .assessment-card { padding: 30px 20px; }
+            .progress-tracker { flex-wrap: wrap; }
+            .step-indicator { padding: 10px; font-size: 0.75em; min-width: 45%; }
+            .survey-container { grid-template-columns: 1fr; }
+            .survey-question { min-height: auto; padding: 25px; } 
+        }
+    </style>
+</head>
+<body class="landing-page">
+
+    <nav class="navbar glass-nav">
+        <div class="nav-brand"><i class="fa-solid fa-bolt"></i> MIND & METRICS</div>
+        <div class="nav-links">
+            <a href="/" class="nav-link"><i class="fa-solid fa-arrow-left"></i> BACK TO HOME</a>
+            <button id="darkModeToggle" class="dark-mode-toggle"><i class="fa-solid fa-moon"></i></button>
+        </div>
+    </nav>
+
+    <div class="wizard-container">
+        
+        <div class="progress-tracker scroll-reveal">
+            <div class="step-indicator active" id="indicator1">1. PROFILE</div>
+            <div class="step-indicator" id="indicator2">2. USAGE</div>
+            <div class="step-indicator" id="indicator3">3. WELLBEING</div>
+            <div class="step-indicator" id="indicator4">4. HABITS</div>
+        </div>
+        
+        <form id="assessmentWizard" class="assessment-card scroll-reveal" novalidate>
+            
+            <!-- Step 1: Basic Info -->
+            <div class="step-panel active" id="step1">
+                <h2 class="step-title">ABOUT YOU</h2>
+                <p class="step-desc">Let's establish a baseline so our AI can contextualize your report accurately.</p>
+                
+                <div class="form-grid">
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label>NAME (OPTIONAL)</label>
+                        <input type="text" id="userName" class="modern-input" placeholder="How should we address you?">
+                    </div>
+
+                    <div class="form-group">
+                        <label>AGE</label>
+                        <input type="number" id="age" class="modern-input" placeholder="e.g. 25" required min="12" max="100">
+                    </div>
+
+                    <div class="form-group">
+                        <label>GENDER</label>
+                        <select id="gender" class="modern-input" required>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label>OCCUPATION / STATUS</label>
+                        <select id="occupation" class="modern-input" required>
+                            <option value="Student">Student</option>
+                            <option value="Professional">Professional</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="consent-card">
+                    <label class="consent-label">
+                        <input type="checkbox" id="consentCheck" required> 
+                        I consent to the secure processing of my anonymized data.
+                    </label>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; margin-top: 40px;">
+                    <button type="button" class="btn btn-nav" onclick="goToStep(2)">NEXT STEP <i class="fa-solid fa-arrow-right"></i></button>
+                </div>
+            </div>
+
+            <!-- Step 2: Usage Metrics & Sleep (Split Screen Layout) -->
+            <div class="step-panel" id="step2">
+                <h2 class="step-title">SMARTPHONE USAGE</h2>
+                <p class="step-desc">Upload your screenshots on the left, and view the AI's real-time extracted metrics and app breakdown on the right.</p>
+                
+                <!-- SPLIT SCREEN WRAPPER -->
+                <div class="step2-split-grid">
+                    
+                    <!-- LEFT COLUMN: UPLOAD & SLEEP -->
+                    <div>
+                        <div id="dropZone" class="drop-zone" onclick="document.getElementById('fileInput').click()" style="padding: 40px 20px; margin-bottom: 20px;">
+                            <i class="fa-solid fa-cloud-arrow-up" style="font-size: 3.5em; margin-bottom: 12px; color: var(--color-blue);"></i>
+                            <h2 style="margin: 0; font-size: 1.2em;">TAP TO UPLOAD</h2>
+                            <p style="font-weight: 600; font-size: 0.95em; margin-top: 8px;">Drag & drop or CTRL+V to paste.</p>
+                            <input type="file" id="fileInput" accept=".png, .jpg, .jpeg" style="display: none;" multiple>
+                            <div id="extractionStatus" style="margin-top: 12px; font-weight: 800; font-size: 1em;"></div>
+                        </div>
+
+                        <!-- Sleep Duration Slider -->
+                        <div class="form-group" style="padding: 20px; background: rgba(115, 130, 144, 0.05); border-radius: 16px; border: 1px solid var(--border-color);">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                                <label style="margin: 0; color: var(--text-main); font-size: 0.9em;">AVERAGE SLEEP</label>
+                                <span id="sleepValueDisplay" style="color: var(--color-blue); font-weight: 800; font-size: 1.1em;">7.0 HRS</span>
+                            </div>
+                            <input type="range" id="sleep_hours" min="2" max="12" step="0.5" value="7.0" class="modern-input" 
+                                   oninput="document.getElementById('sleepValueDisplay').innerText = this.value + ' HRS'" style="padding: 0;">
+                        </div>
+                    </div>
+
+                    <!-- RIGHT COLUMN: EXTRACTED METRICS & APP BREAKDOWN -->
+                    <div style="display: flex; flex-direction: column; gap: 20px;">
+                        <div class="form-group" style="margin: 0;">
+                            <label>TOTAL SCREEN TIME (HOURS)</label>
+                            <input type="number" step="0.1" id="daily_screen_time_hours" class="modern-input" required placeholder="0.0">
+                        </div>
+
+                        <div class="form-group" style="margin: 0;">
+                            <label>SOCIAL MEDIA (HOURS)</label>
+                            <input type="number" step="0.1" id="social_media_hours" class="modern-input" required placeholder="0.0">
+                        </div>
+
+                        <div class="form-group" style="margin: 0;">
+                            <label>UNLOCKS / PICKUPS <span style="color: var(--text-muted); text-transform: none; font-weight: 400;">(Optional)</span></label>
+                            <input type="number" id="unlock_frequency" class="modern-input" placeholder="e.g. 60">
+                        </div>
+
+                        <!-- App Breakdown Container -->
+                        <div id="appBreakdownContainer" style="display: none; border: 1px solid var(--border-color); border-radius: 16px; background: var(--bg-body); overflow: hidden;">
+                            <div style="background: var(--color-blue); color: white; padding: 12px 15px; font-weight: 800; font-size: 0.9em; letter-spacing: 0.5px;">
+                                <i class="fa-solid fa-mobile-screen"></i> DETECTED APP USAGE
+                            </div>
+                            <div id="appBreakdownList" style="padding: 12px; max-height: 180px; overflow-y: auto;">
+                                <!-- Apps injected via JS -->
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div style="display: flex; justify-content: space-between; margin-top: 40px;">
+                    <button type="button" class="btn btn-nav" style="background: var(--bg-body); color: var(--text-main) !important; box-shadow: none; border: 2px solid var(--border-color);" onclick="goToStep(1)"><i class="fa-solid fa-arrow-left"></i> BACK</button>
+                    <button type="button" class="btn btn-nav" onclick="goToStep(3)">NEXT STEP <i class="fa-solid fa-arrow-right"></i></button>
+                </div>
+            </div>
+
+            <!-- Step 3: Emotional Wellbeing (PHQ-9) -->
+            <div class="step-panel" id="step3">
+                <h2 class="step-title">EMOTIONAL WELLBEING</h2>
+                <div class="news-banner" style="margin-bottom: 30px; text-align: left; background: var(--color-blue); border-radius: 12px; padding: 15px 25px;">
+                    Over the last 2 weeks, how often have you been bothered by the following problems?<br>
+                    <span style="font-size: 0.85em; opacity: 0.9;">0 = Not at all | 1 = Several days | 2 = More than half the days | 3 = Nearly every day</span>
+                </div>
+                
+                <div class="survey-container" id="phq_survey"></div>
+                
+                <div style="display: flex; justify-content: space-between; margin-top: 40px;">
+                    <button type="button" class="btn btn-nav" style="background: var(--bg-body); color: var(--text-main) !important; box-shadow: none; border: 2px solid var(--border-color);" onclick="goToStep(2)"><i class="fa-solid fa-arrow-left"></i> BACK</button>
+                    <button type="button" class="btn btn-nav" onclick="goToStep(4)">NEXT STEP <i class="fa-solid fa-arrow-right"></i></button>
+                </div>
+            </div>
+
+            <!-- Step 4: Digital Dependency (SAS-SV) -->
+            <div class="step-panel" id="step4">
+                <h2 class="step-title">DIGITAL DEPENDENCY</h2>
+                <div class="news-banner" style="margin-bottom: 30px; text-align: left; background: var(--color-blue); border-radius: 12px; padding: 15px 25px;">
+                    Please rate how strongly you agree or disagree with the following statements.<br>
+                    <span style="font-size: 0.85em; opacity: 0.9;">1 = Strongly Disagree | 6 = Strongly Agree</span>
+                </div>
+                
+                <div class="survey-container" id="sas_survey"></div>
+                
+                <div style="display: flex; justify-content: space-between; margin-top: 40px;">
+                    <button type="button" class="btn btn-nav" style="background: var(--bg-body); color: var(--text-main) !important; box-shadow: none; border: 2px solid var(--border-color);" onclick="goToStep(3)"><i class="fa-solid fa-arrow-left"></i> BACK</button>
+                    <button type="submit" class="btn btn-nav" style="background-color: var(--color-terracotta);">ANALYZE RESULTS <i class="fa-solid fa-bolt"></i></button>
+                </div>
+            </div>
+
+        </form>
+    </div>
+
+    <footer class="brutal-footer">
+        <p><strong>© 2026 DIGITAL WELLNESS & XAI PROJECT.</strong> BUILT FOR BETTER MENTAL HEALTH.</p>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/assessment.js') }}"></script>
+    
+    <!-- UI INTERACTIVITY SCRIPTS -->
+    <script>
+        const darkModeBtn = document.getElementById('darkModeToggle');
+        const icon = darkModeBtn.querySelector('i');
+        
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark-mode');
+            icon.classList.replace('fa-moon', 'fa-sun');
+        }
+
+        darkModeBtn.addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            if (document.body.classList.contains('dark-mode')) {
+                icon.classList.replace('fa-moon', 'fa-sun');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                icon.classList.replace('fa-sun', 'fa-moon');
+                localStorage.setItem('theme', 'light');
+            }
+        });
+
+        window.goToStep = function(stepNumber) {
+            document.querySelectorAll('.step-panel').forEach(panel => {
+                panel.classList.remove('active');
+            });
+            
+            const targetPanel = document.getElementById(`step${stepNumber}`);
+            if (targetPanel) {
+                targetPanel.classList.add('active');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+            
+            document.querySelectorAll('.step-indicator').forEach((indicator, index) => {
+                if (index + 1 === stepNumber) {
+                    indicator.classList.add('active');
+                } else {
+                    indicator.classList.remove('active');
+                }
+            });
+        };
+
+        const observerOptions = { threshold: 0.1, rootMargin: "0px 0px -50px 0px" };
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.scroll-reveal').forEach((el) => {
+            observer.observe(el);
+        });
+    </script>
+</body>
+</html>
