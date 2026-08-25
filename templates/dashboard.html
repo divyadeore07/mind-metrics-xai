@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Command Center - Mind & Metrics</title>
+    <title>Your Results - Mind & Metrics</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,16 +12,14 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Chart.js and PDF Exporter -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     
     <style>
-        /* Full-Screen Workspace Container */
         .command-center-container {
             max-width: 1400px;
             margin: 20px auto 50px auto;
-            padding: 0 25px;
+            padding: 0 20px;
         }
 
         /* Top Status Bar */
@@ -32,32 +30,49 @@
             background: var(--bg-card);
             border: 1px solid var(--border-color);
             border-radius: 20px;
-            padding: 20px 30px;
-            box-shadow: var(--shadow-sm);
+            padding: 25px 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.03);
             margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 20px;
+            position: relative;
+            overflow: hidden;
         }
 
-        /* Main Workspace Grid (Fills Screen) */
+        /* Subtle glowing top accent for the header */
+        .command-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--color-blue), var(--color-green));
+        }
+
+        .header-left h1 {
+            margin: 5px 0 0 0; 
+            font-size: 2em; 
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .header-right {
+            display: flex; 
+            align-items: center; 
+            gap: 25px;
+            flex-wrap: wrap;
+        }
+
+        /* Main Workspace Grid */
         .command-grid {
             display: grid;
             grid-template-columns: repeat(12, 1fr);
             gap: 20px;
         }
 
-        .col-3 { grid-column: span 3; }
         .col-4 { grid-column: span 4; }
-        .col-5 { grid-column: span 5; }
         .col-6 { grid-column: span 6; }
-        .col-7 { grid-column: span 7; }
-        .col-8 { grid-column: span 8; }
-        .col-9 { grid-column: span 9; }
-        .col-12 { grid-column: span 12; }
-
-        @media (max-width: 1100px) {
-            .col-3, .col-4, .col-5, .col-6, .col-7, .col-8, .col-9 {
-                grid-column: span 12 !important;
-            }
-        }
 
         /* Command Card Panels */
         .command-card {
@@ -65,47 +80,75 @@
             border: 1px solid var(--border-color);
             border-radius: 20px;
             padding: 25px;
-            box-shadow: var(--shadow-sm);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.02);
             display: flex;
             flex-direction: column;
             justify-content: space-between;
             height: 100%;
             box-sizing: border-box;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .command-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.04);
         }
 
+        /* Attractive, Colorful Headings */
         .card-title {
-            font-size: 0.9em;
-            font-weight: 700;
-            color: var(--text-muted);
+            font-size: 1.05em;
+            font-weight: 800;
+            color: var(--text-main);
             text-transform: uppercase;
-            letter-spacing: 0.8px;
-            margin-bottom: 15px;
+            letter-spacing: 0.5px;
+            margin-bottom: 20px;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 12px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
         }
+        
+        .card-title i {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            font-size: 1.1em;
+        }
+
+        /* Distinct Soft Colors for Each Icon */
+        .icon-usage { color: #4A90E2; background: rgba(74, 144, 226, 0.15); }
+        .icon-attach { color: #F5A623; background: rgba(245, 166, 35, 0.15); }
+        .icon-mood { color: #50E3C2; background: rgba(80, 227, 194, 0.15); }
+        .icon-plan { color: #7ED321; background: rgba(126, 211, 33, 0.15); }
+        .icon-flag { color: #D0021B; background: rgba(208, 2, 27, 0.15); }
+        .icon-shap { color: #9B51E0; background: rgba(155, 81, 224, 0.15); }
+        .icon-time { color: #4A90E2; background: rgba(74, 144, 226, 0.15); }
 
         /* Metric Displays */
         .metric-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 10px 0;
-            border-bottom: 1px solid var(--border-color);
+            padding: 14px 0;
+            border-bottom: 1px dashed var(--border-color);
             font-size: 1.05em;
+            color: var(--text-main);
         }
         .metric-row:last-child {
             border-bottom: none;
+            padding-bottom: 0;
         }
 
-        /* Chart Canvas Wrappers */
         .chart-box {
             position: relative;
             height: 240px;
             width: 100%;
+            margin-top: 15px;
         }
 
-        /* Modern Lists */
         .action-list {
             list-style: none;
             padding: 0;
@@ -115,20 +158,70 @@
             display: flex;
             align-items: flex-start;
             gap: 12px;
-            margin-bottom: 12px;
-            font-size: 0.98em;
+            margin-bottom: 16px;
+            font-size: 1.05em;
             line-height: 1.5;
             color: var(--text-main);
+            background: var(--bg-body);
+            padding: 12px 15px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
         }
         .action-list li i {
-            margin-top: 3px;
-            font-size: 1.1em;
+            margin-top: 4px;
+            font-size: 1.2em;
+        }
+
+        /* --- SUPERIOR MOBILE RESPONSIVENESS --- */
+        @media (max-width: 900px) {
+            .command-center-container {
+                padding: 10px;
+                margin-top: 10px;
+            }
+            .col-4, .col-6 {
+                grid-column: span 12 !important; 
+            }
+            .command-header {
+                flex-direction: column;
+                text-align: center;
+                padding: 25px 20px;
+                gap: 15px;
+            }
+            .header-right {
+                flex-direction: column;
+                justify-content: center;
+                width: 100%;
+                gap: 15px;
+            }
+            .header-right > div {
+                text-align: center !important;
+            }
+            .export-btns {
+                width: 100%;
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+            }
+            .export-btns .btn {
+                width: 100%;
+                justify-content: center;
+                padding: 12px;
+                font-size: 1em;
+            }
+            .command-card {
+                padding: 20px 15px;
+            }
+            .metric-row {
+                font-size: 0.95em;
+            }
+            .card-title {
+                font-size: 0.95em;
+            }
         }
     </style>
 </head>
 <body class="landing-page">
     
-    <!-- Glassmorphism Navbar -->
     <nav class="navbar glass-nav">
         <div class="nav-brand"><i class="fa-solid fa-bolt"></i> MIND & METRICS</div>
         <div class="nav-links">
@@ -142,18 +235,18 @@
         
         <!-- TOP STATUS BAR -->
         <div class="command-header scroll-reveal">
-            <div>
-                <span style="font-size: 0.85em; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Diagnostic Status</span>
-                <h1 id="overall-risk" style="margin: 2px 0 0 0; font-size: 1.6em; font-weight: 800;">ANALYZING...</h1>
+            <div class="header-left">
+                <span style="font-size: 0.9em; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">Your Wellness Overview</span>
+                <h1 id="overall-risk">ANALYZING...</h1>
             </div>
-            <div style="display: flex; align-items: center; gap: 20px;">
+            <div class="header-right">
                 <div style="text-align: right;">
-                    <span style="font-size: 0.8em; color: var(--text-muted); display: block;">Risk Probability</span>
-                    <strong id="overall-prob" style="font-size: 1.3em;">0%</strong>
+                    <span style="font-size: 0.85em; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; display: block;">Dependency Likelihood</span>
+                    <strong id="overall-prob" style="font-size: 1.6em; color: var(--text-main);">0%</strong>
                 </div>
-                <div style="display: flex; gap: 8px;">
-                    <button id="exportDataBtn" class="btn" style="background: var(--bg-body); color: var(--text-main) !important; border: 1px solid var(--border-color); border-radius: 12px; padding: 8px 14px; font-size: 0.85em; box-shadow: none;"><i class="fa-solid fa-code"></i> JSON</button>
-                    <button id="exportPdfBtn" class="btn" style="background: var(--color-blue); border-radius: 12px; padding: 8px 14px; font-size: 0.85em; box-shadow: none;"><i class="fa-solid fa-file-pdf"></i> PDF</button>
+                <div class="export-btns">
+                    <button id="exportDataBtn" class="btn" style="background: var(--bg-body); color: var(--text-main) !important; border: 2px solid var(--border-color); border-radius: 12px; padding: 10px 16px; font-size: 0.9em; box-shadow: none; font-weight: 700;"><i class="fa-solid fa-code"></i> JSON</button>
+                    <button id="exportPdfBtn" class="btn" style="background: var(--color-blue); border-radius: 12px; padding: 10px 16px; font-size: 0.9em; box-shadow: 0 4px 15px rgba(74, 144, 226, 0.3); font-weight: 700;"><i class="fa-solid fa-file-pdf"></i> SAVE REPORT</button>
                 </div>
             </div>
         </div>
@@ -164,88 +257,100 @@
             <!-- ROW 1, COL 1: USAGE LOAD -->
             <div class="command-card col-4 scroll-reveal">
                 <div>
-                    <div class="card-title"><i class="fa-solid fa-mobile-screen-button"></i> Phone Usage Load</div>
-                    <div id="usage-severity" style="font-size: 1.2em; font-weight: 800; margin-bottom: 15px; color: var(--color-blue);">Evaluating...</div>
+                    <div class="card-title">
+                        <i class="fa-solid fa-mobile-screen-button icon-usage"></i> Daily Screen Habits
+                    </div>
+                    <div id="usage-severity" style="font-size: 1.3em; font-weight: 800; margin-bottom: 15px; color: var(--color-blue);">Evaluating...</div>
                     <div class="metric-row">
-                        <span>Daily Screen Time</span>
+                        <span style="font-weight: 500;">Total Screen Time</span>
                         <strong><span id="usage-total">0</span> hrs</strong>
                     </div>
                     <div class="metric-row">
-                        <span>Social Media</span>
+                        <span style="font-weight: 500;">Social Media</span>
                         <strong><span id="usage-social">0</span> hrs</strong>
                     </div>
                     <div class="metric-row">
-                        <span>Average Sleep</span>
+                        <span style="font-weight: 500;">Average Sleep</span>
                         <strong><span id="usage-sleep">0</span> hrs</strong>
                     </div>
                     <div class="metric-row">
-                        <span>Unlock Frequency</span>
+                        <span style="font-weight: 500;">Phone Unlocks</span>
                         <strong><span id="usage-unlocks">0</span> times</strong>
                     </div>
                 </div>
-                <div style="margin-top: 15px; font-size: 0.85em; color: var(--text-muted);">
-                    <i class="fa-solid fa-circle-info"></i> Extracted via multi-modal data pipeline.
+                <div style="margin-top: 20px; font-size: 0.85em; color: var(--text-muted); line-height: 1.5; font-weight: 500;">
+                    <i class="fa-solid fa-circle-info" style="opacity: 0.7;"></i> Calculated directly from your uploaded screenshots.
                 </div>
             </div>
 
-            <!-- ROW 1, COL 2: DIGITAL DEPENDENCY (SAS-SV) -->
+            <!-- ROW 1, COL 2: DIGITAL DEPENDENCY -->
             <div class="command-card col-4 scroll-reveal">
                 <div>
-                    <div class="card-title"><i class="fa-solid fa-link-slash"></i> Digital Dependency (SAS-SV)</div>
-                    <div id="sas-severity" style="font-size: 1.2em; font-weight: 800; margin-bottom: 15px; color: var(--color-yellow);">Evaluating...</div>
-                    <div style="text-align: center; padding: 10px 0;">
-                        <span style="font-size: 0.85em; color: var(--text-muted); text-transform: uppercase;">Total Score</span>
-                        <div id="sas-score" style="font-size: 3em; font-weight: 800; line-height: 1; margin: 5px 0;">0</div>
-                        <span style="font-size: 0.85em; color: var(--text-muted);">Scale range: 10 – 60</span>
+                    <div class="card-title">
+                        <i class="fa-solid fa-link-slash icon-attach"></i> Smartphone Attachment
+                    </div>
+                    <div id="sas-severity" style="font-size: 1.3em; font-weight: 800; margin-bottom: 15px; color: var(--color-yellow);">Evaluating...</div>
+                    <div style="text-align: center; padding: 15px 0; background: var(--bg-body); border-radius: 16px; border: 1px solid var(--border-color);">
+                        <span style="font-size: 0.85em; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Your Score</span>
+                        <div id="sas-score" style="font-size: 4em; font-weight: 800; line-height: 1; margin: 10px 0; color: var(--text-main);">0</div>
+                        <span style="font-size: 0.85em; font-weight: 500; color: var(--text-muted);">Scale range: 10 – 60</span>
                     </div>
                 </div>
-                <div style="margin-top: 15px; font-size: 0.85em; color: var(--text-muted);">
-                    <i class="fa-solid fa-circle-info"></i> Measures compulsive checking habits.
+                <div style="margin-top: 20px; font-size: 0.85em; color: var(--text-muted); line-height: 1.5; font-weight: 500;">
+                    <i class="fa-solid fa-circle-info" style="opacity: 0.7;"></i> Measures how strongly you rely on your phone in daily life.
                 </div>
             </div>
 
-            <!-- ROW 1, COL 3: EMOTIONAL WELLBEING (PHQ-9) -->
+            <!-- ROW 1, COL 3: EMOTIONAL WELLBEING -->
             <div class="command-card col-4 scroll-reveal">
                 <div>
-                    <div class="card-title"><i class="fa-solid fa-face-frown"></i> Emotional Wellbeing (PHQ-9)</div>
-                    <div id="phq-severity" style="font-size: 1.2em; font-weight: 800; margin-bottom: 15px; color: var(--color-green);">Evaluating...</div>
-                    <div style="text-align: center; padding: 10px 0;">
-                        <span style="font-size: 0.85em; color: var(--text-muted); text-transform: uppercase;">Depression Severity Score</span>
-                        <div id="phq-score" style="font-size: 3em; font-weight: 800; line-height: 1; margin: 5px 0;">0</div>
-                        <span style="font-size: 0.85em; color: var(--text-muted);">Scale range: 0 – 27</span>
+                    <div class="card-title">
+                        <i class="fa-solid fa-face-frown icon-mood"></i> Mood & Wellbeing
+                    </div>
+                    <div id="phq-severity" style="font-size: 1.3em; font-weight: 800; margin-bottom: 15px; color: var(--color-green);">Evaluating...</div>
+                    <div style="text-align: center; padding: 15px 0; background: var(--bg-body); border-radius: 16px; border: 1px solid var(--border-color);">
+                        <span style="font-size: 0.85em; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Your Score</span>
+                        <div id="phq-score" style="font-size: 4em; font-weight: 800; line-height: 1; margin: 10px 0; color: var(--text-main);">0</div>
+                        <span style="font-size: 0.85em; font-weight: 500; color: var(--text-muted);">Scale range: 0 – 27</span>
                     </div>
                 </div>
-                <div style="margin-top: 15px; font-size: 0.85em; color: var(--text-muted);">
-                    <i class="fa-solid fa-circle-info"></i> Evaluates mood over the past 2 weeks.
+                <div style="margin-top: 20px; font-size: 0.85em; color: var(--text-muted); line-height: 1.5; font-weight: 500;">
+                    <i class="fa-solid fa-circle-info" style="opacity: 0.7;"></i> Evaluates your general mood and energy over the past 2 weeks.
                 </div>
             </div>
 
             <!-- ROW 2, COL 1-6: ACTION PLAN -->
             <div class="command-card col-6 scroll-reveal">
-                <div class="card-title"><i class="fa-solid fa-bullseye" style="color: var(--color-green);"></i> Tailored Action Plan</div>
-                <ul id="recommendationsList" class="action-list" style="margin-top: 10px; flex: 1;"></ul>
-                <div style="margin-top: 15px; font-size: 0.85em; color: var(--text-muted);">
-                    Generated based on your clinical scores and usage vector.
+                <div class="card-title">
+                    <i class="fa-solid fa-bullseye icon-plan"></i> Your Action Plan
+                </div>
+                <ul id="recommendationsList" class="action-list" style="margin-top: 5px; flex: 1;"></ul>
+                <div style="margin-top: 15px; font-size: 0.85em; color: var(--text-muted); font-weight: 500;">
+                    Personalized advice based on your habits and mood.
                 </div>
             </div>
 
             <!-- ROW 2, COL 7-12: BEHAVIORAL FLAGS -->
             <div class="command-card col-6 scroll-reveal">
-                <div class="card-title"><i class="fa-solid fa-flag" style="color: var(--color-terracotta);"></i> Behavioral Red Flags</div>
+                <div class="card-title">
+                    <i class="fa-solid fa-flag icon-flag"></i> Areas of Concern
+                </div>
                 <div id="behavioral-flags" style="flex: 1; display: flex; align-items: center;">
-                    <ul class="action-list" style="width: 100%; margin-top: 10px;">
+                    <ul class="action-list" style="width: 100%; margin-top: 5px;">
                         <!-- Injected via JS -->
                     </ul>
                 </div>
-                <div style="margin-top: 15px; font-size: 0.85em; color: var(--text-muted);">
-                    Real-time risk warnings identified during parsing.
+                <div style="margin-top: 15px; font-size: 0.85em; color: var(--text-muted); font-weight: 500;">
+                    Key habits that might be negatively impacting your wellbeing.
                 </div>
             </div>
 
-            <!-- ROW 3, COL 1-6: RISK DRIVERS (SHAP) -->
+            <!-- ROW 3, COL 1-6: RISK DRIVERS -->
             <div class="command-card col-6 scroll-reveal">
-                <div class="card-title"><i class="fa-solid fa-scale-balanced" style="color: var(--color-blue);"></i> Explainable AI: Top Risk Drivers (SHAP)</div>
-                <p style="font-size: 0.85em; color: var(--text-muted); margin-bottom: 10px;">Features pushing your model prediction toward risk.</p>
+                <div class="card-title">
+                    <i class="fa-solid fa-scale-balanced icon-shap"></i> What's Influencing Your Score?
+                </div>
+                <p style="font-size: 0.9em; font-weight: 500; color: var(--text-muted); margin-bottom: 10px;">The main factors increasing your digital dependency.</p>
                 <div class="chart-box">
                     <canvas id="brutalHorizontalChart"></canvas>
                 </div>
@@ -253,8 +358,10 @@
 
             <!-- ROW 3, COL 7-12: PROGRESS TIMELINE -->
             <div class="command-card col-6 scroll-reveal">
-                <div class="card-title"><i class="fa-solid fa-chart-line" style="color: var(--color-green);"></i> Progress Over Time</div>
-                <p style="font-size: 0.85em; color: var(--text-muted); margin-bottom: 10px;">Historical tracking of screen time vs. mood score.</p>
+                <div class="card-title">
+                    <i class="fa-solid fa-chart-line icon-time"></i> Progress Over Time
+                </div>
+                <p style="font-size: 0.9em; font-weight: 500; color: var(--text-muted); margin-bottom: 10px;">Tracking your screen time vs. mood score.</p>
                 <div class="chart-box">
                     <canvas id="historyLineChart"></canvas>
                 </div>
@@ -268,12 +375,9 @@
         <p><strong>© 2026 DIGITAL WELLNESS & XAI PROJECT.</strong> BUILT FOR BETTER MENTAL HEALTH.</p>
     </footer>
 
-    <!-- EXTERNAL SCRIPTS -->
     <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
     
-    <!-- UI INTERACTIVITY SCRIPTS -->
     <script>
-        // --- DARK MODE TOGGLE LOGIC ---
         const darkModeBtn = document.getElementById('darkModeToggle');
         const icon = darkModeBtn.querySelector('i');
         
@@ -294,7 +398,6 @@
             window.location.reload();
         });
 
-        // --- SCROLL ANIMATION OBSERVER ---
         const observerOptions = { threshold: 0.1, rootMargin: "0px 0px -50px 0px" };
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {

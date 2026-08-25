@@ -11,6 +11,49 @@
     
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- MOBILE RESPONSIVE FIXES -->
+    <style>
+        @media (max-width: 900px) {
+            .navbar {
+                padding: 15px 20px !important;
+                flex-direction: column;
+                gap: 15px;
+            }
+            .nav-links {
+                width: 100%;
+                justify-content: center;
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+            .hero-title {
+                font-size: 2.2em !important;
+            }
+            .hero-section {
+                padding: 40px 20px !important;
+                text-align: center;
+            }
+            .hero-content {
+                align-items: center;
+            }
+            .psu-unique-container {
+                grid-template-columns: 1fr !important;
+                gap: 40px !important;
+            }
+            .abstract-phone {
+                min-height: 350px !important;
+            }
+            .benefits-horizontal-container {
+                grid-template-columns: 1fr !important;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .massive-text {
+                font-size: 2.2em !important;
+            }
+        }
+    </style>
 </head>
 <body class="landing-page">
 
@@ -41,7 +84,7 @@
     <header class="hero-section left-align">
         <div class="hero-content scroll-reveal">
             <span class="badge" style="background: var(--color-blue);"><i class="fa-solid fa-leaf"></i> PROJECT DIGITAL DETOX</span>
-            <h1 class="hero-title">
+            <h1 class="hero-title" style="font-size: 3.5em;">
                 <span class="flow-text">UNDERSTAND YOUR</span><br>
                 DIGITAL HABITS.
             </h1>
@@ -58,8 +101,8 @@
     </header>
 
     <!-- UNIQUE PSU Section: The Digital Distraction Layout -->
-    <section id="about-psu" class="scroll-reveal" style="padding: 100px 5%;">
-        <div class="psu-unique-container">
+    <section id="about-psu" class="scroll-reveal" style="padding: 80px 5%;">
+        <div class="psu-unique-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center;">
             
             <!-- Left Side: Text -->
             <div class="psu-text-content">
@@ -73,10 +116,10 @@
 
             <!-- Right Side: The Abstract Phone Visual -->
             <div class="psu-phone-visual">
-                <div class="abstract-phone">
+                <div class="abstract-phone" style="position: relative; min-height: 400px;">
                     
                     <!-- Notification 1 -->
-                    <div class="noti-card noti-left noti-yellow">
+                    <div class="noti-card noti-left noti-yellow" style="margin-bottom: 15px;">
                         <div class="noti-header"><i class="fa-solid fa-magnifying-glass"></i> THE SYMPTOMS</div>
                         <div class="noti-body">Characterized by compulsive checking, losing track of time, and feeling anxious or fretful when separated from your device.</div>
                     </div>
@@ -94,12 +137,12 @@
     </section>
 
     <!-- Benefits Section -->
-    <section id="benefits" class="features-section scroll-reveal" style="padding: 80px 10%;">
-        <div style="text-align: center; margin-bottom: 50px;">
-            <h2 style="font-size: 3em;">WHY TAKE THIS ASSESSMENT?</h2>
+    <section id="benefits" class="features-section scroll-reveal" style="padding: 80px 5%;">
+        <div style="text-align: center; margin-bottom: 40px;">
+            <h2 style="font-size: 2.5em;">WHY TAKE THIS ASSESSMENT?</h2>
         </div>
         
-        <div class="benefits-horizontal-container">
+        <div class="benefits-horizontal-container" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
             <div class="attractive-card text-center">
                 <div class="benefit-icon text-teal"><i class="fa-solid fa-user-check"></i></div>
                 <h3>PERSONAL INSIGHT</h3>
@@ -121,31 +164,31 @@
     </section>
 
     <!-- Reality Check Section (Neumorphic Orbs) -->
-    <section class="stats-section scroll-reveal" style="background: rgba(138, 163, 140, 0.05); padding: 80px 10%;">
-        <div style="text-align: center; margin-bottom: 50px;">
-            <h2 style="font-size: 3em;">THE REALITY CHECK</h2>
+    <section class="stats-section scroll-reveal" style="background: rgba(138, 163, 140, 0.05); padding: 80px 5%;">
+        <div style="text-align: center; margin-bottom: 40px;">
+            <h2 style="font-size: 2.5em;">THE REALITY CHECK</h2>
             <p style="color: var(--text-muted); font-size: 1.1em;">Data-driven insights into modern digital behavior.</p>
         </div>
-        <div class="stats-grid">
+        <div class="stats-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; text-align: center;">
             <div class="stat-orb">
-                <h2 class="stat-number text-red" style="font-size: 4em; margin-bottom: 5px;">60%</h2>
+                <h2 class="stat-number text-red" style="font-size: 3.5em; margin-bottom: 5px;">60%</h2>
                 <p>Of young adults report severe sleep disturbances due to late-night screen time.</p>
             </div>
             <div class="stat-orb">
-                <h2 class="stat-number text-teal" style="font-size: 4em; margin-bottom: 5px;">70+</h2>
+                <h2 class="stat-number text-teal" style="font-size: 3.5em; margin-bottom: 5px;">70+</h2>
                 <p>The average number of times a user unlocks their smartphone in a single day.</p>
             </div>
             <div class="stat-orb">
-                <h2 class="stat-number text-green" style="font-size: 3.5em; margin-bottom: 5px;">HIGH</h2>
+                <h2 class="stat-number text-green" style="font-size: 3em; margin-bottom: 5px;">HIGH</h2>
                 <p>Correlation between elevated SAS-SV addiction scores and depressive (PHQ-9) symptoms.</p>
             </div>
         </div>
     </section>
 
     <!-- Massive Bottom CTA -->
-    <section class="brutal-cta-section scroll-reveal">
-        <h2 class="massive-text">YOUR BRAIN NEEDS A BREAK.</h2>
-        <button id="bottomAnimateTestBtn" class="btn btn-massive-curved" style="background: white; color: var(--color-green) !important; font-size: 1.5em; padding: 20px 50px;">
+    <section class="brutal-cta-section scroll-reveal" style="padding: 60px 20px; text-align: center;">
+        <h2 class="massive-text" style="font-size: 3em; margin-bottom: 20px;">YOUR BRAIN NEEDS A BREAK.</h2>
+        <button id="bottomAnimateTestBtn" class="btn btn-massive-curved" style="background: white; color: var(--color-green) !important; font-size: 1.2em; padding: 15px 35px;">
             FIND OUT WHY <i class="fa-solid fa-arrow-right"></i>
         </button>
     </section>
@@ -183,10 +226,7 @@
             if (btn) {
                 btn.addEventListener('click', (e) => {
                     e.preventDefault();
-                    // Add expanding class
                     btn.classList.add('expanding-transition');
-                    
-                    // Wait for animation to finish (600ms), then redirect
                     setTimeout(() => {
                         window.location.href = '/assessment';
                     }, 600);
@@ -194,13 +234,10 @@
             }
         }
 
-        // Apply to all 3 CTAs
         applyBlowupAnimation('animateTestBtn');
         applyBlowupAnimation('navAnimateTestBtn');
         applyBlowupAnimation('bottomAnimateTestBtn');
 
-        // --- FIX FOR BROWSERS "BACK" BUTTON BEHAVIOR ---
-        // If the user clicks back, this resets the blown-up buttons instantly
         window.addEventListener('pageshow', (event) => {
             if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
                 document.querySelectorAll('.expanding-transition').forEach(btn => {
@@ -209,7 +246,6 @@
             }
         });
 
-        // --- SCROLL ANIMATION OBSERVER ---
         const observerOptions = {
             threshold: 0.1,
             rootMargin: "0px 0px -50px 0px"

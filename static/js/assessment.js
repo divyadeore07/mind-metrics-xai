@@ -65,7 +65,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const dropZone = document.getElementById('dropZone');
     const statusDiv = document.getElementById('extractionStatus');
 
-    // --- MULTIPLE FILE UPLOAD & OCR LOGIC ---
     if (fileInput) {
         fileInput.addEventListener('change', (e) => {
             if (e.target.files.length > 0) uploadAndExtractFiles(e.target.files);
@@ -97,108 +96,95 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    function parseDuration(str) {
+        let h = 0, m = 0;
+        let combo = str.match(/(\d+)\s*(?:hrs?|hours?|h)\s*,?\s*(\d+)\s*(?:mins?|minutes?|m)/i);
+        if (combo) {
+            h = parseInt(combo[1], 10);
+            m = parseInt(combo[2], 10);
+            return { h, m, total: (h * 60) + m };
+        }
+        let hrOnly = str.match(/(\d+)\s*(?:hrs?|hours?|h\b)/i);
+        if (hrOnly) h = parseInt(hrOnly[1], 10);
+
+        let minOnly = str.match(/(\d+)\s*(?:mins?|minutes?|m\b)/i);
+        if (minOnly) m = parseInt(minOnly[1], 10);
+
+        return { h, m, total: (h * 60) + m };
+    }
+
     async function uploadAndExtractFiles(files) {
         if (!statusDiv) return;
 
         const fileArray = Array.from(files);
         statusDiv.style.color = 'var(--color-teal)';
-        statusDiv.innerText = `INITIALIZING AI PIPELINE FOR ${fileArray.length} IMAGE(S)...`;
+        statusDiv.innerText = `SCANNING SCREENSHOT WITH AI PIPELINE...`;
         
         let totalMins = 0;
         let totalUnlocks = 0;
         let totalSocialMins = 0;
-        
-        const targetApps = ['instagram', 'whatsapp', 'youtube', 'chrome', 'tiktok', 'facebook', 'snapchat', 'chatgpt', 'reddit', 'twitter', 'x', 'netflix', 'safari', 'messages'];
-        const socialApps = ['instagram', 'tiktok', 'facebook', 'snapchat', 'twitter', 'x', 'reddit'];
-        let appUsageHtml = "";
+        let extractedAppsArray = [];
+
+        const allApps = ['chrome', 'instagram', 'google', 'youtube', 'whatsapp', 'tiktok', 'facebook', 'snapchat', 'twitter', 'x', 'reddit', 'safari', 'clock', 'chatgpt', 'netflix'];
+        const socialApps = ['instagram', 'youtube', 'tiktok', 'facebook', 'snapchat', 'twitter', 'x', 'reddit', 'whatsapp'];
 
         try {
             const worker = await Tesseract.createWorker('eng');
             
             for (let i = 0; i < fileArray.length; i++) {
-                statusDiv.innerText = `SCANNING IMAGE ${i + 1} OF ${fileArray.length} (OS DETECTION)...`;
                 const ret = await worker.recognize(fileArray[i]);
                 const text = ret.data.text;
 
-                let hours = 0;
-                let minutes = 0;
-                let unlocks = 0;
-                let foundTotalTime = false;
-
-                const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-                
-                for (let j = 0; j < lines.length; j++) {
-                    let currentLine = lines[j].toLowerCase();
-                    
-                    if (currentLine.includes("screen time today") || currentLine.includes("daily average") || currentLine.includes("screen time")) {
-                        for (let k = j; k <= Math.min(j + 2, lines.length - 1); k++) {
-                            let block = lines[k];
-                            
-                            let comboMatch = block.match(/(\d+)\s*h[^\d]*(\d+)\s*m/i);
-                            if (comboMatch) {
-                                hours = parseInt(comboMatch[1], 10);
-                                minutes = parseInt(comboMatch[2], 10);
-                                foundTotalTime = true;
-                                break;
-                            }
-                            
-                            let singleHourMatch = block.match(/^(\d+)\s*h$/i);
-                            if (singleHourMatch) {
-                                hours = parseInt(singleHourMatch[1], 10);
-                                foundTotalTime = true;
-                                break;
-                            }
-                        }
-                        if (foundTotalTime) break;
-                    }
+                // 1. Total Screen Time (e.g. "4 hrs, 10 mins")
+                const exactTimeMatch = text.match(/(\d+)\s*(?:hrs?|hours?)\s*,?\s*(\d+)\s*(?:mins?|minutes?)/i);
+                if (exactTimeMatch) {
+                    totalMins += (parseInt(exactTimeMatch[1], 10) * 60) + parseInt(exactTimeMatch[2], 10);
                 }
 
-                if (!foundTotalTime) {
-                    let topMatches = text.match(/(\d+)\s*h/gi);
-                    if (topMatches && topMatches.length > 0) {
-                        let firstVal = topMatches[0].match(/\d+/);
-                        if (firstVal) hours = parseInt(firstVal[0], 10);
-                    }
-                }
-
-                const unlockMatch = text.match(/(?:(\d+)\s*(?:unlocks|pickups|times|sessions))/i) || text.match(/(?:pickups|unlocks)[^\d]*(\d+)/i);
+                // 2. Unlocks
+                const unlockMatch = text.match(/(\d+)\s*(?:unlocks|pickups)/i);
                 if (unlockMatch) {
-                    unlocks = parseInt(unlockMatch[1] || unlockMatch[2], 10);
+                    totalUnlocks += parseInt(unlockMatch[1], 10);
                 }
 
-                totalMins += (hours * 60) + minutes;
-                totalUnlocks += unlocks;
+                // 3. Scan Lines for App Names & Durations
+                const rawLines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+                let usedIndices = new Set();
 
-                for (let j = 0; j < lines.length; j++) {
-                    let currentLine = lines[j].toLowerCase();
-                    let matchedApp = targetApps.find(app => currentLine === app || currentLine.includes(app));
+                for (let j = 0; j < rawLines.length; j++) {
+                    let line = rawLines[j].toLowerCase();
+                    let cleanLine = line.replace(/[^a-z0-9\s]/gi, ' ').trim();
+
+                    // Find if any supported app is mentioned in this line
+                    let matchedApp = allApps.find(app => {
+                        let regex = new RegExp(`\\b${app}\\b`, 'i');
+                        return regex.test(cleanLine);
+                    });
 
                     if (matchedApp) {
-                        for (let k = j; k <= Math.min(j + 2, lines.length - 1); k++) {
-                            let checkLine = lines[k];
-                            let timeMatch = checkLine.match(/(?:(\d+)\s*h[a-z]*\s*)?(\d+)\s*m[a-z]*/i) || checkLine.match(/^(\d+)\s*h[a-z]*$/i);
-                            
-                            if (timeMatch && !checkLine.toLowerCase().includes('screen time')) {
-                                let appHours = timeMatch[1] ? parseInt(timeMatch[1], 10) : 0;
-                                let appMins = timeMatch[2] ? parseInt(timeMatch[2], 10) : 0;
-                                
-                                if (checkLine.match(/^(\d+)\s*h[a-z]*$/i)) {
-                                    appHours = parseInt(timeMatch[1] || timeMatch[0].match(/\d+/)[0], 10);
-                                    appMins = 0;
-                                }
+                        // Scan the current line and the next 2 lines for the time value
+                        for (let k = j; k <= Math.min(rawLines.length - 1, j + 2); k++) {
+                            if (usedIndices.has(k)) continue;
+                            let subLine = rawLines[k].toLowerCase();
+                            if (subLine.includes('screen time') || subLine.includes('today')) continue;
 
-                                if (socialApps.includes(matchedApp)) {
-                                    totalSocialMins += (appHours * 60) + appMins;
-                                }
+                            let dur = parseDuration(subLine);
+                            if (dur.total > 0 && dur.total < 1440) {
+                                usedIndices.add(k);
 
-                                let cleanAppName = matchedApp.charAt(0).toUpperCase() + matchedApp.slice(1);
-                                let cleanTime = checkLine.toUpperCase();
-                                
-                                appUsageHtml += `
-                                <div style="display: flex; justify-content: space-between; padding: 12px 10px; border-bottom: 2px solid var(--border-color);">
-                                    <span style="font-weight: 800; text-transform: uppercase;">${cleanAppName}</span>
-                                    <span style="color: var(--color-blue); font-weight: 800;">${cleanTime}</span>
-                                </div>`;
+                                let displayName = matchedApp.charAt(0).toUpperCase() + matchedApp.slice(1);
+                                if (displayName === 'Youtube') displayName = 'YouTube';
+                                if (displayName === 'Chatgpt') displayName = 'ChatGPT';
+
+                                let timeStr = dur.h > 0 ? `${dur.h}h ${dur.m}m` : `${dur.m}m`;
+
+                                extractedAppsArray.push({
+                                    name: displayName,
+                                    appKey: matchedApp,
+                                    totalMins: dur.total,
+                                    timeStr: timeStr,
+                                    isSocial: socialApps.includes(matchedApp)
+                                });
                                 break;
                             }
                         }
@@ -207,19 +193,47 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             await worker.terminate();
 
-            let finalHours = Math.floor(totalMins / 60);
-            if (totalMins % 60 > 30) finalHours += 1;
-            const computedHours = finalHours > 0 ? finalHours : 0; 
+            // Deduplicate and retain highest duration per app
+            let uniqueMap = new Map();
+            extractedAppsArray.forEach(app => {
+                if (!uniqueMap.has(app.name) || uniqueMap.get(app.name).totalMins < app.totalMins) {
+                    uniqueMap.set(app.name, app);
+                }
+            });
 
-            let extractedSocialHours = parseFloat((totalSocialMins / 60).toFixed(1));
+            // Sort descending by usage time
+            let sortedApps = Array.from(uniqueMap.values()).sort((a, b) => b.totalMins - a.totalMins);
 
-            document.getElementById('daily_screen_time_hours').value = computedHours;
-            document.getElementById('social_media_hours').value = extractedSocialHours;
-            
+            // Accumulate Social Media Time
+            sortedApps.forEach(app => {
+                if (app.isSocial) {
+                    totalSocialMins += app.totalMins;
+                }
+            });
+
+            // Slice only TOP 3 for the display card
+            let top3 = sortedApps.slice(0, 3);
+            let appUsageHtml = "";
+
+            top3.forEach(app => {
+                appUsageHtml += `
+                <div style="display: flex; justify-content: space-between; padding: 8px 6px; border-bottom: 1px solid var(--border-color);">
+                    <span style="font-weight: 800; text-transform: uppercase;">${app.name}</span>
+                    <span style="color: var(--color-blue); font-weight: 800;">${app.timeStr}</span>
+                </div>`;
+            });
+
+            let exactDecimalHours = totalMins > 0 ? parseFloat((totalMins / 60).toFixed(1)) : 0.0;
+            let extractedSocialHours = totalSocialMins > 0 ? parseFloat((totalSocialMins / 60).toFixed(1)) : 0.0;
+
+            if (exactDecimalHours > 0) {
+                document.getElementById('daily_screen_time_hours').value = exactDecimalHours;
+            }
+            if (extractedSocialHours > 0) {
+                document.getElementById('social_media_hours').value = extractedSocialHours;
+            }
             if (totalUnlocks > 0) {
                 document.getElementById('unlock_frequency').value = totalUnlocks;
-            } else {
-                document.getElementById('unlock_frequency').value = "";
             }
 
             if (appUsageHtml !== "") {
@@ -228,16 +242,15 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             statusDiv.style.color = 'var(--color-green)';
-            statusDiv.innerText = `SUCCESS! PLEASE VERIFY EXTRACTED METRICS BELOW.`;
+            statusDiv.innerText = `SUCCESS! EXTRACTED ${exactDecimalHours} HRS TOTAL.`;
             
         } catch (err) {
             console.error(err);
             statusDiv.style.color = 'var(--color-red)';
-            statusDiv.innerText = 'PIPELINE ERROR. PLEASE TRY CLEARER IMAGES OR ENTER MANUALLY.';
+            statusDiv.innerText = 'OCR ERROR. ENTER METRICS MANUALLY.';
         }
     }
 
-    // --- FORM SUBMISSION ---
     if (wizardForm) {
         wizardForm.addEventListener('submit', async function (e) {
             e.preventDefault();
@@ -251,7 +264,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const screenTimeVal = document.getElementById('daily_screen_time_hours').value;
                 const socialMediaVal = document.getElementById('social_media_hours').value || 0;
                 const sleepVal = document.getElementById('sleep_hours').value || 7.0;
-                
                 const unlockInput = document.getElementById('unlock_frequency').value;
                 const unlockVal = unlockInput !== "" ? parseInt(unlockInput, 10) : 0;
 
@@ -260,7 +272,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     goToStep(2); return;
                 }
 
-                // Validate PHQ-9 (Step 3)
                 let phqTotal = 0;
                 for (let i = 0; i < PHQ_QUESTIONS.length; i++) {
                     const selected = document.querySelector(`input[name="phq_q${i}"]:checked`);
@@ -271,7 +282,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     phqTotal += parseInt(selected.value, 10);
                 }
 
-                // Validate SAS-SV (Step 4)
                 let sasTotal = 0;
                 for (let i = 0; i < SAS_QUESTIONS.length; i++) {
                     const selected = document.querySelector(`input[name="sas_q${i}"]:checked`);
@@ -296,8 +306,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     gad7_score: 0 
                 };
 
-                console.log("Submitting Payload:", payload);
-
                 const response = await fetch('/api/assessment/submit', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -310,7 +318,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     result = JSON.parse(rawText);
                 } catch (parseErr) {
                     console.error("Non-JSON Response from Server:", rawText);
-                    alert("Server returned an invalid response. Check console for details.");
+                    alert("Server returned an invalid response.");
                     return;
                 }
 

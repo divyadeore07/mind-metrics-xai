@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
-    <!-- CUSTOM INLINE STYLES FOR SLEEK WIZARD UI -->
+    <!-- CUSTOM INLINE STYLES FOR SLEEK WIZARD UI & MOBILE RESPONSIVENESS -->
     <style>
         .wizard-container {
             max-width: 1100px;
@@ -101,15 +101,34 @@
             align-items: start;
         }
 
+        /* NEW: SEPARATED ACTION CARDS */
+        .action-card {
+            background: var(--bg-body);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.02);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
         @media (max-width: 900px) {
             .step2-split-grid {
                 grid-template-columns: 1fr;
             }
+            .assessment-card { padding: 30px 20px; }
+            .progress-tracker { flex-wrap: wrap; }
+            .step-indicator { padding: 10px; font-size: 0.75em; min-width: 45%; }
+            .survey-container { grid-template-columns: 1fr; }
+            .survey-question { min-height: auto; padding: 25px; } 
+            .action-card { padding: 20px; }
         }
 
         .form-group {
             display: flex;
             flex-direction: column;
+            margin: 0; /* Reset for flex gap */
         }
         
         .form-group label {
@@ -126,7 +145,7 @@
             padding: 16px 20px;
             border: 2px solid var(--border-color);
             border-radius: 16px;
-            background: var(--bg-body);
+            background: var(--bg-card);
             font-family: 'Inter', sans-serif;
             font-size: 1.05em;
             color: var(--text-main);
@@ -136,7 +155,6 @@
         .modern-input:focus {
             outline: none;
             border-color: var(--color-blue);
-            background: var(--bg-card);
             box-shadow: 0 0 0 4px rgba(115, 130, 144, 0.15);
         }
 
@@ -247,14 +265,6 @@
             box-shadow: 0 6px 20px rgba(138, 163, 140, 0.4);
             transform: translateY(-2px);
         }
-
-        @media (max-width: 768px) {
-            .assessment-card { padding: 30px 20px; }
-            .progress-tracker { flex-wrap: wrap; }
-            .step-indicator { padding: 10px; font-size: 0.75em; min-width: 45%; }
-            .survey-container { grid-template-columns: 1fr; }
-            .survey-question { min-height: auto; padding: 25px; } 
-        }
     </style>
 </head>
 <body class="landing-page">
@@ -333,50 +343,50 @@
                 <!-- SPLIT SCREEN WRAPPER -->
                 <div class="step2-split-grid">
                     
-                    <!-- LEFT COLUMN: UPLOAD & SLEEP -->
-                    <div>
-                        <div id="dropZone" class="drop-zone" onclick="document.getElementById('fileInput').click()" style="padding: 40px 20px; margin-bottom: 20px;">
+                    <!-- LEFT CARD: UPLOAD & SLEEP -->
+                    <div class="action-card">
+                        <div id="dropZone" class="drop-zone" onclick="document.getElementById('fileInput').click()" style="padding: 40px 20px; border: 2px dashed var(--color-blue); background: var(--bg-card); border-radius: 16px; cursor: pointer; text-align: center;">
                             <i class="fa-solid fa-cloud-arrow-up" style="font-size: 3.5em; margin-bottom: 12px; color: var(--color-blue);"></i>
                             <h2 style="margin: 0; font-size: 1.2em;">TAP TO UPLOAD</h2>
-                            <p style="font-weight: 600; font-size: 0.95em; margin-top: 8px;">Drag & drop or CTRL+V to paste.</p>
+                            <p style="font-weight: 600; font-size: 0.95em; margin-top: 8px;">Drag & drop or CTRL+V to paste overview screenshot.</p>
                             <input type="file" id="fileInput" accept=".png, .jpg, .jpeg" style="display: none;" multiple>
                             <div id="extractionStatus" style="margin-top: 12px; font-weight: 800; font-size: 1em;"></div>
                         </div>
 
                         <!-- Sleep Duration Slider -->
-                        <div class="form-group" style="padding: 20px; background: rgba(115, 130, 144, 0.05); border-radius: 16px; border: 1px solid var(--border-color);">
+                        <div class="form-group" style="padding: 20px; background: var(--bg-card); border-radius: 16px; border: 1px solid var(--border-color);">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                                 <label style="margin: 0; color: var(--text-main); font-size: 0.9em;">AVERAGE SLEEP</label>
                                 <span id="sleepValueDisplay" style="color: var(--color-blue); font-weight: 800; font-size: 1.1em;">7.0 HRS</span>
                             </div>
                             <input type="range" id="sleep_hours" min="2" max="12" step="0.5" value="7.0" class="modern-input" 
-                                   oninput="document.getElementById('sleepValueDisplay').innerText = this.value + ' HRS'" style="padding: 0;">
+                                   oninput="document.getElementById('sleepValueDisplay').innerText = this.value + ' HRS'" style="padding: 0; height: auto;">
                         </div>
                     </div>
 
-                    <!-- RIGHT COLUMN: EXTRACTED METRICS & APP BREAKDOWN -->
-                    <div style="display: flex; flex-direction: column; gap: 20px;">
-                        <div class="form-group" style="margin: 0;">
+                    <!-- RIGHT CARD: EXTRACTED METRICS & APP BREAKDOWN -->
+                    <div class="action-card">
+                        <div class="form-group">
                             <label>TOTAL SCREEN TIME (HOURS)</label>
                             <input type="number" step="0.1" id="daily_screen_time_hours" class="modern-input" required placeholder="0.0">
                         </div>
 
-                        <div class="form-group" style="margin: 0;">
+                        <div class="form-group">
                             <label>SOCIAL MEDIA (HOURS)</label>
                             <input type="number" step="0.1" id="social_media_hours" class="modern-input" required placeholder="0.0">
                         </div>
 
-                        <div class="form-group" style="margin: 0;">
+                        <div class="form-group">
                             <label>UNLOCKS / PICKUPS <span style="color: var(--text-muted); text-transform: none; font-weight: 400;">(Optional)</span></label>
                             <input type="number" id="unlock_frequency" class="modern-input" placeholder="e.g. 60">
                         </div>
 
-                        <!-- App Breakdown Container -->
-                        <div id="appBreakdownContainer" style="display: none; border: 1px solid var(--border-color); border-radius: 16px; background: var(--bg-body); overflow: hidden;">
-                            <div style="background: var(--color-blue); color: white; padding: 12px 15px; font-weight: 800; font-size: 0.9em; letter-spacing: 0.5px;">
-                                <i class="fa-solid fa-mobile-screen"></i> DETECTED APP USAGE
+                        <!-- App Breakdown Sub-Container -->
+                        <div id="appBreakdownContainer" style="display: none; border: 1px solid var(--border-color); border-radius: 16px; background: var(--bg-card); overflow: hidden; margin-top: 10px;">
+                            <div style="background: rgba(115, 130, 144, 0.2); color: var(--text-main); padding: 12px 15px; font-weight: 800; font-size: 0.9em; letter-spacing: 0.5px;">
+                                <i class="fa-solid fa-mobile-screen"></i> DETECTED APP USAGE (TOP 3)
                             </div>
-                            <div id="appBreakdownList" style="padding: 12px; max-height: 180px; overflow-y: auto;">
+                            <div id="appBreakdownList" style="padding: 12px; max-height: 200px; overflow-y: auto;">
                                 <!-- Apps injected via JS -->
                             </div>
                         </div>

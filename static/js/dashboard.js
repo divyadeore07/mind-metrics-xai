@@ -1,6 +1,6 @@
 /**
  * static/js/dashboard.js
- * Clean, Skimmable Command Center Dashboard & Charts
+ * Clean, Mobile-Responsive Dashboard & Charts
  */
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -18,7 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const insight = result.combined_insight || {};
         const shap = result.shap_explanation || [];
 
-        // 1. Populate Hero Verdict
+        // 1. Populate Header
         const riskEl = document.getElementById("overall-risk");
         if (riskEl) {
             riskEl.innerText = (insight.risk_level || "UNKNOWN").toUpperCase();
@@ -36,7 +36,7 @@ document.addEventListener("DOMContentLoaded", () => {
             probEl.innerText = (insight.risk_probability || "0") + "%";
         }
 
-        // 2. Telemetry Metrics (Safe element checking)
+        // 2. Metrics
         if (analytics.usage) {
             const usageTotal = document.getElementById("usage-total");
             if (usageTotal) usageTotal.innerText = analytics.usage.screen_time || "0";
@@ -51,7 +51,6 @@ document.addEventListener("DOMContentLoaded", () => {
             if (usageUnlocks) usageUnlocks.innerText = analytics.usage.unlocks || "0";
         }
 
-        // 3. Clinical Metrics
         if (analytics.sas) {
             const sasScore = document.getElementById("sas-score");
             if (sasScore) sasScore.innerText = analytics.sas.score || "0";
@@ -63,22 +62,25 @@ document.addEventListener("DOMContentLoaded", () => {
         if (analytics.phq) {
             const phqScore = document.getElementById("phq-score");
             if (phqScore) phqScore.innerText = analytics.phq.score || "0";
+            
+            const phqSeverity = document.getElementById("phq-severity");
+            if (phqSeverity) phqSeverity.innerText = analytics.phq.severity || "Evaluated";
         }
 
-        // 4. Action Plan List
+        // 3. Action Plan List
         const recsList = document.getElementById("recommendationsList");
         if (recsList) {
             recsList.innerHTML = "";
             if (insight.recommendations && insight.recommendations.length > 0) {
                 insight.recommendations.forEach(rec => {
                     const li = document.createElement("li");
-                    li.innerHTML = `<i class="fa-solid fa-circle-check" style="color: var(--color-green); margin-top: 3px;"></i> <span>${rec}</span>`;
+                    li.innerHTML = `<i class="fa-solid fa-circle-check" style="color: var(--color-green);"></i> <span>${rec}</span>`;
                     recsList.appendChild(li);
                 });
             }
         }
 
-        // 5. Red Flags
+        // 4. Easy-to-read Red Flags
         const flagsSection = document.getElementById("behavioral-flags");
         if (flagsSection) {
             const flagsContainer = flagsSection.querySelector("ul") || flagsSection;
@@ -86,29 +88,43 @@ document.addEventListener("DOMContentLoaded", () => {
             let flagsAdded = false;
 
             if (analytics.usage && analytics.usage.screen_time > 5) {
-                flagsContainer.innerHTML += `<li><i class="fa-solid fa-triangle-exclamation" style="color: var(--color-terracotta);"></i> <div><strong>High Screen Time:</strong> Daily usage exceeds healthy thresholds.</div></li>`;
+                flagsContainer.innerHTML += `<li><i class="fa-solid fa-triangle-exclamation" style="color: var(--color-terracotta);"></i> <div><strong>High Screen Time:</strong> Your daily usage is higher than recommended.</div></li>`;
                 flagsAdded = true;
             }
             if (analytics.usage && analytics.usage.sleep < 6) {
-                flagsContainer.innerHTML += `<li><i class="fa-solid fa-bed" style="color: var(--color-terracotta);"></i> <div><strong>Sleep Deprivation:</strong> Rest schedule is below normal baseline.</div></li>`;
+                flagsContainer.innerHTML += `<li><i class="fa-solid fa-bed" style="color: var(--color-terracotta);"></i> <div><strong>Low Sleep:</strong> You are getting less sleep than your body likely needs.</div></li>`;
                 flagsAdded = true;
             }
             if (analytics.sas && analytics.sas.score >= 31) {
-                flagsContainer.innerHTML += `<li><i class="fa-solid fa-triangle-exclamation" style="color: var(--color-terracotta);"></i> <div><strong>Dependency Risk:</strong> High compulsive checking tendency.</div></li>`;
+                flagsContainer.innerHTML += `<li><i class="fa-solid fa-link-slash" style="color: var(--color-terracotta);"></i> <div><strong>High Attachment:</strong> You show signs of strongly relying on your phone.</div></li>`;
                 flagsAdded = true;
             }
             
             if (!flagsAdded) {
-                flagsContainer.innerHTML = `<li><i class="fa-solid fa-shield-check" style="color: var(--color-green);"></i> <div><strong>Clean Habits:</strong> No severe behavioral red flags found.</div></li>`;
+                flagsContainer.innerHTML = `<li><i class="fa-solid fa-shield-check" style="color: var(--color-green);"></i> <div><strong>Healthy Habits:</strong> We didn't detect any major areas of concern!</div></li>`;
             }
         }
 
         const computedTextColor = getComputedStyle(document.body).getPropertyValue('--text-main').trim() || '#2D3748';
 
-        // 6. SHAP Chart Render
+        // Helper dictionary to make SHAP labels human-readable
+        const readableFeatures = {
+            "daily_screen_time_hours": "Total Screen Time",
+            "social_media_hours": "Social Media Usage",
+            "sleep_hours": "Sleep Duration",
+            "unlock_frequency": "Phone Unlocks",
+            "sas_sv_score": "Attachment Score",
+            "phq9_score": "Mood Score"
+        };
+
+        // 5. SHAP Chart Render
         if (shap && shap.length > 0) {
             const riskDrivers = shap.filter(item => item.impact > 0).sort((a, b) => b.impact - a.impact);
-            const labels = riskDrivers.map(item => item.feature.replace(/_/g, " ").toUpperCase());
+            
+            const labels = riskDrivers.map(item => {
+                return readableFeatures[item.feature] || item.feature.replace(/_/g, " ");
+            });
+            
             const impacts = riskDrivers.map(item => item.impact);
             
             const canvas = document.getElementById("brutalHorizontalChart");
@@ -131,14 +147,14 @@ document.addEventListener("DOMContentLoaded", () => {
                         plugins: { legend: { display: false } },
                         scales: {
                             x: { grid: { color: 'rgba(150,150,150,0.1)' }, ticks: { display: false } },
-                            y: { grid: { display: false }, ticks: { font: { weight: '600', size: 10 }, color: computedTextColor } }
+                            y: { grid: { display: false }, ticks: { font: { weight: '600', size: 11, family: 'Inter' }, color: computedTextColor } }
                         }
                     }
                 });
             }
         }
 
-        // 7. Timeline Chart Render
+        // 6. Timeline Chart Render
         fetch('/api/user/history')
             .then(res => res.json())
             .then(data => {
@@ -156,17 +172,19 @@ document.addEventListener("DOMContentLoaded", () => {
                                         label: 'Screen Time (Hrs)',
                                         data: hist.screen_time,
                                         borderColor: '#738290',
+                                        backgroundColor: '#738290',
                                         borderWidth: 2,
                                         tension: 0.3,
-                                        pointRadius: 3
+                                        pointRadius: 4
                                     },
                                     {
-                                        label: 'PHQ-9 Score',
+                                        label: 'Mood Score',
                                         data: hist.phq9,
                                         borderColor: '#8AA38C',
+                                        backgroundColor: '#8AA38C',
                                         borderWidth: 2,
                                         tension: 0.3,
-                                        pointRadius: 3
+                                        pointRadius: 4
                                     }
                                 ]
                             },
@@ -174,11 +192,11 @@ document.addEventListener("DOMContentLoaded", () => {
                                 responsive: true,
                                 maintainAspectRatio: false,
                                 plugins: {
-                                    legend: { labels: { font: { family: 'Inter', weight: '600', size: 11 }, color: computedTextColor } }
+                                    legend: { labels: { font: { family: 'Inter', weight: '600', size: 12 }, color: computedTextColor } }
                                 },
                                 scales: {
-                                    x: { grid: { color: 'rgba(150,150,150,0.1)' }, ticks: { font: { size: 10 }, color: computedTextColor } },
-                                    y: { grid: { color: 'rgba(150,150,150,0.1)' }, ticks: { font: { size: 10 }, color: computedTextColor } }
+                                    x: { grid: { color: 'rgba(150,150,150,0.1)' }, ticks: { font: { size: 11, family: 'Inter' }, color: computedTextColor } },
+                                    y: { grid: { color: 'rgba(150,150,150,0.1)' }, ticks: { font: { size: 11, family: 'Inter' }, color: computedTextColor } }
                                 }
                             }
                         });
@@ -187,7 +205,7 @@ document.addEventListener("DOMContentLoaded", () => {
             })
             .catch(err => console.error("History Error:", err));
 
-        // 8. Exporters
+        // 7. Exporters
         document.getElementById("exportDataBtn")?.addEventListener("click", () => {
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(result, null, 4));
             const node = document.createElement('a');
@@ -202,8 +220,8 @@ document.addEventListener("DOMContentLoaded", () => {
             const element = document.querySelector(".command-center-container");
             const btn = document.getElementById("exportPdfBtn");
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
-            html2pdf().from(element).set({ margin: 5, filename: 'Command_Center_Report.pdf', image: { type: 'jpeg', quality: 0.98 } }).save().then(() => {
-                btn.innerHTML = '<i class="fa-solid fa-file-pdf"></i> PDF';
+            html2pdf().from(element).set({ margin: [10, 5, 10, 5], filename: 'Mind_Metrics_Report.pdf', image: { type: 'jpeg', quality: 0.98 } }).save().then(() => {
+                btn.innerHTML = '<i class="fa-solid fa-file-pdf"></i> SAVE REPORT';
             });
         });
 
