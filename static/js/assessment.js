@@ -127,7 +127,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
                 
-                // 1. Direct Anchor Search for total screen time
                 for (let j = 0; j < lines.length; j++) {
                     let currentLine = lines[j].toLowerCase();
                     
@@ -154,7 +153,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
 
-                // 2. Fallback for Screen Time
                 if (!foundTotalTime) {
                     let topMatches = text.match(/(\d+)\s*h/gi);
                     if (topMatches && topMatches.length > 0) {
@@ -163,17 +161,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
 
-                // 3. Robust Unlocks/Pickups Extraction (No hallucinations)
-                // Looks for "60 unlocks", "Pickups: 60", etc.
                 const unlockMatch = text.match(/(?:(\d+)\s*(?:unlocks|pickups|times|sessions))/i) || text.match(/(?:pickups|unlocks)[^\d]*(\d+)/i);
                 if (unlockMatch) {
                     unlocks = parseInt(unlockMatch[1] || unlockMatch[2], 10);
                 }
 
                 totalMins += (hours * 60) + minutes;
-                totalUnlocks += unlocks; // If nothing found, adds 0.
+                totalUnlocks += unlocks;
 
-                // --- APP BREAKDOWN & SOCIAL MEDIA EXTRACTION ---
                 for (let j = 0; j < lines.length; j++) {
                     let currentLine = lines[j].toLowerCase();
                     let matchedApp = targetApps.find(app => currentLine === app || currentLine.includes(app));
@@ -181,11 +176,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (matchedApp) {
                         for (let k = j; k <= Math.min(j + 2, lines.length - 1); k++) {
                             let checkLine = lines[k];
-                            // Improved regex for app times
                             let timeMatch = checkLine.match(/(?:(\d+)\s*h[a-z]*\s*)?(\d+)\s*m[a-z]*/i) || checkLine.match(/^(\d+)\s*h[a-z]*$/i);
                             
                             if (timeMatch && !checkLine.toLowerCase().includes('screen time')) {
-                                
                                 let appHours = timeMatch[1] ? parseInt(timeMatch[1], 10) : 0;
                                 let appMins = timeMatch[2] ? parseInt(timeMatch[2], 10) : 0;
                                 
@@ -218,18 +211,15 @@ document.addEventListener('DOMContentLoaded', () => {
             if (totalMins % 60 > 30) finalHours += 1;
             const computedHours = finalHours > 0 ? finalHours : 0; 
 
-            // Calculate extracted social media hours
             let extractedSocialHours = parseFloat((totalSocialMins / 60).toFixed(1));
 
-            // Populate form fields directly (no forcing estimates on unlocks)
             document.getElementById('daily_screen_time_hours').value = computedHours;
             document.getElementById('social_media_hours').value = extractedSocialHours;
             
-            // Only set unlocks if OCR found them, else leave blank
             if (totalUnlocks > 0) {
                 document.getElementById('unlock_frequency').value = totalUnlocks;
             } else {
-                document.getElementById('unlock_frequency').value = ""; // Leave blank for manual entry
+                document.getElementById('unlock_frequency').value = "";
             }
 
             if (appUsageHtml !== "") {
@@ -262,7 +252,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const socialMediaVal = document.getElementById('social_media_hours').value || 0;
                 const sleepVal = document.getElementById('sleep_hours').value || 7.0;
                 
-                // If unlock is left blank, default to 0 for the ML model
                 const unlockInput = document.getElementById('unlock_frequency').value;
                 const unlockVal = unlockInput !== "" ? parseInt(unlockInput, 10) : 0;
 
@@ -303,9 +292,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     sleep_hours: parseFloat(sleepVal),
                     unlock_frequency: unlockVal,
                     sas_sv_score: sasTotal,   
-                    phq9_score: phqTotal,     
+                    phq9_score: phqTotal,    
                     gad7_score: 0 
                 };
+
+                console.log("Submitting Payload:", payload);
 
                 const response = await fetch('/api/assessment/submit', {
                     method: 'POST',
@@ -314,7 +305,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
 
                 const rawText = await response.text();
-                let result = JSON.parse(rawText);
+                let result;
+                try {
+                    result = JSON.parse(rawText);
+                } catch (parseErr) {
+                    console.error("Non-JSON Response from Server:", rawText);
+                    alert("Server returned an invalid response. Check console for details.");
+                    return;
+                }
 
                 if (response.ok && result.status === 'success') {
                     sessionStorage.setItem('last_result', JSON.stringify(result));
